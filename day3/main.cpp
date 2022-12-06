@@ -3,27 +3,39 @@
 #include <string>
 #include <vector>
 
-char commonLetter(std::string str1, std::string str2){
-	for(int i = 0; i < str1.length(); i++){
-		for(int x = 0; x < str2.length(); x++){
-			if(str1[i] == str2[x])
-				return str1[i];
-		}
-	}
-	return -1;
-}
-char commonLetter(std::string str1, std::string str2, std::string str3){
-	for(int i = 0; i < str1.length(); i++){
-		for(int x = 0; x < str2.length(); x++){
-			for(int y = 0; y < str3.length(); y++){
-				if(str1[i] == str2[x] && str2[x] == str3[y])
-					return str1[i];
+int commonLetter(std::string str[], int n){
+	// Caps letters in first half
+	// lowercase in second half
+	bool prim[52];
+	std::memset(prim, true, sizeof(prim));
+	
+	for(int i = 0; i < n; i++){
+		bool sec[52] = { false };
+
+		for(int j = 0; str[i][j]; j++){
+			if(str[i][j] <= 'Z'){
+				if(prim[str[i][j] - 'A'])
+					sec[str[i][j] - 'A'] = true;
+			}else{
+				if(prim[str[i][j] - 'a' + 26])
+					sec[str[i][j] - 'a' + 26] = true;
 			}
 		}
+		std::memcpy(prim, sec, 52);
 	}
-	std::cout << "error" << "\n";
+
+	for(int i = 0; i < 52; i++){
+		if(prim[i]){
+			if(i < 26)
+				return i + 'A';
+			else
+				return i - 26 + 'a';
+		}
+	}
+
 	return -1;
 }
+
 
 int main(){
 	
@@ -40,8 +52,13 @@ int main(){
 		groups.push_back(temp);
 		if(groups.size() >= 3){
 			// do the math here
-			int x = int(commonLetter(groups.at(0), groups.at(1), groups.at(2)));
-
+			std::string str[] = {
+				groups.at(0),
+				groups.at(1),
+				groups.at(2)
+			};
+			int x = commonLetter(str, 3);
+			
 			if(x >= 97){
 				// lowercase
 				part2 += (x - 96);
@@ -52,10 +69,13 @@ int main(){
 		}
 		
 		//do stuff
-		std::string half1 = temp.substr(0, temp.length()/2); // contains first half
-		std::string half2 = temp.substr(temp.length()/2, -1); // contains second half
+		std::string halves[2];
+		halves[0] = temp.substr(0, temp.length()/2); // contains first half
+		halves[1] = temp.substr(temp.length()/2, -1); // contains second half
+		
+		
 
-		int x = int(commonLetter(half1, half2));
+		int x = int(commonLetter(halves, 2));
 		
 		if(x >= 97){
 			// lowercase
