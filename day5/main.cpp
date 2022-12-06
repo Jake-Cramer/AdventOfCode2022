@@ -67,8 +67,6 @@ int main(){
 			moveTo = std::stoi(temp) - 1;
 
 			// Now time to move
-
-
 			// crate mover 9000 code
 			/*
 			for(int i = 1; i <= moveNum; i++){
