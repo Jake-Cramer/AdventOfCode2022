@@ -126,9 +126,6 @@ int main(){
 	int extraSpaceNeeded = neededUnusedSpace - (totalSize - ptr[1]);
 
 	std::cout << "total size of sizes less than 100,000: " << ptr[0] <<"\n";
-	std::cout << "Total size: " << ptr[1] << "\n";
-	std::cout << "Total unused space = " << totalSize - ptr[1] << "\n";
-	std::cout << "Extra space needed is: " << extraSpaceNeeded << "\n";
 	std::cout << "Dir that can be deleted with the smallest space is: " << 
 		findSize(extraSpaceNeeded, &firstPtr->size, firstPtr) << "\n";
 
