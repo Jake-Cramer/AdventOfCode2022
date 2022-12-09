@@ -150,6 +150,8 @@ int main(){
 			for(int i = 1; i < 9; i++){
 				moveTail(rope[i], rope[i - 1], &otherSpaces);
 			}
+			// optimize
+			otherSpaces.clear();
 
 			// at the end do last knot so i can get space
 			moveTail(rope[9], rope[8], &spacesVisated);
