@@ -2,51 +2,78 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 struct Arr{
 	int num;
 	std::vector<struct Arr> arrs;
 };
 
-std::vector<struct Arr> * parseArr(std::string temp, std:: vector<struct Arr> * pArr){
-	// each location in the array is an Arr
-	// each arr either has a number or a vector of arr
-	//
-	// if the location im at call parseArr for the array
-	
-	// loop through each location
-	// have to be careful checking for commas because the commas can be in the inside arrays
-	int locInTemp = 1;
-	while(locInTemp < temp.length()){	
-		struct Arr* loc = new Arr;
-		loc->num = -1; // set to -1 for all locs
-		// has been called for array so automatically assume that temp[0] is a [
-		// check if this loc is an array
-		if(temp[locInTemp] == '['){
-			// is an array
-			std::string newTemp = temp.substr(locInTemp, temp.find("]", locInTemp) - locInTemp + 1);
-			// need
-			loc->arrs = *parseArr(newTemp, pArr);
-			locInTemp = temp.find("]", locInTemp);
-		}else if(temp[locInTemp] != ']'){
-			// is a number
-			std::string tempNum = temp.substr(locInTemp, temp.find(",", locInTemp) - locInTemp);
-			if(tempNum != ""){
-				loc->num = std::stoi(tempNum);
-			}
-			locInTemp = temp.find(",", locInTemp);
-		}else{
-			// i have reached the end of the string
-			locInTemp = temp.length();
+void printArr(std::vector<struct Arr> arr){
+	std::cout << "[";
+	for(int i = 0; i < arr.size(); i++){
+		if(arr.at(i).num >= 0){
+			std::cout << arr.at(i).num << ",";
 		}
-		pArr->push_back(*loc);
+		else if(!arr.at(i).arrs.empty()){
+			printArr(arr.at(i).arrs);
+		}
 	}
+	std::cout << "]";
+}
 
+std::vector<struct Arr> * parseArr(std::string temp, std:: vector<struct Arr> * pArr){
+	// takes in the line and a vector Arr that i can put it in
+	
+	// temp[0] always is '['
+	// so i start at temp[1]
+	int loc = 1; // loc is where i am working in temp
+	
+	// loop through temp
+	while(loc < temp.length()){
+		// this will be for each location
+		// create an Arr object
+		struct Arr tempArr; // can be on stack because vectors create copies of objects
+		tempArr.num = -1; // sets to -1 because it doesnt have a number yet
+
+		// check if what I am looking at is a number
+		// numbers have ascii values of 48 - 57
+		if(temp[loc] >= 48 && temp[loc] <= 57){
+			// is a number
+			tempArr.num = std::stoi(temp.substr(loc, temp.find(",", loc) - loc));
+			// length is equal to the difference between the comma and loc
+
+			// set loc to the comma + 1
+			loc = temp.find(",", loc) + 1;
+			// need to chekc if that was the last item
+			if(loc == 0){
+				loc = temp.length();
+			}
+			// add tempArr to pArr
+			pArr->push_back(tempArr);
+			continue;
+		}
+		// if we are looking at an array
+		// find the new array to call parseArr on
+		// could go from this [ until the first ]
+		std::string newTemp;
+		newTemp = temp.substr(loc, temp.find("]", loc) - loc + 1);
+		// new arr to put stuff in
+		std::vector<struct Arr> * newPArr = new std::vector<struct Arr>;
+		tempArr.arrs = *parseArr(newTemp, newPArr);
+		// add temp arr to pArr
+		pArr->push_back(tempArr);
+		// move loc to the next comma + 1
+		loc = temp.find(",", temp.find("]", loc)) + 1;
+		if(loc == 0){
+			loc = temp.length();
+		}
+	}
+	// after the loop we have gone through temp and have our final arr
 	return pArr;
 }
 
-int rightOrder(std::vector<struct Arr> arr1, std::vector<struct Arr> arr2){
-	std::cout << "Called" << std::endl;
+int rightOrder(std::vector<struct Arr> arr1, std::vector<struct Arr> arr2, int main){
 	// compares the two arrs
 	// if the right is less it returns 1
 	// if arr1 is bigger return 0
@@ -65,24 +92,16 @@ int rightOrder(std::vector<struct Arr> arr1, std::vector<struct Arr> arr2){
 	// 		left side is smaller
 	// 		return 0
 	//
-	// ALL OF THIS ONLY WORKS IF PARSER WORKS
-	
-	// TODO code
-	
-	// first check if the left side is smaller
-	// if it is it is automatically returning false
-	std::cout << "Hi" << std::endl;
-	if(arr1.size() > arr2.size()){
-		std::cout << "Yello" << std::endl;
+	// check for sized
+	if(arr1.size() > arr2.size() && main == 1){
 		return 0;
 	}
-	if(arr1.empty()){
-		std::cout << "HIIII" << std::endl;
-	}
-	std::cout << arr1.size() << std::endl;
-	
+		
 	for(int i = 0; i < arr1.size(); i++){
-		std::cout << i << std::endl;
+		// check for size in here
+		if(arr2.size() == i && main == 0){
+			return 1;
+		}
 		// compares each value
 		if(arr1.at(i).num >= 0 && arr2.at(i).num >= 0){
 			// each value is an int
@@ -91,15 +110,16 @@ int rightOrder(std::vector<struct Arr> arr1, std::vector<struct Arr> arr2){
 			}
 		}// now check if both are arrays
 		else if(arr1.at(i).num == -1 && arr2.at(i).num == -1){
-			std::cout << "OUBFODB" << std::endl;
-			// call func on new arrays
-			if(!rightOrder(arr1.at(i).arrs, arr2.at(i).arrs)){
-				std::cout << "Yo" << std::endl;
+			// check if any of the arrays are null
+			if(arr2.at(i).arrs.size() == 0 && arr1.at(i).arrs.size() != 0){
 				return 0;
-			}else{
-				std::cout << "Yo :(" << std::endl;
+			}
+			// call func on new arrays
+			if(!rightOrder(arr1.at(i).arrs, arr2.at(i).arrs, 0)){
+				return 0;
 			}
 		}// otherwis only 1 is a int
+		 // needs work
 		else{
 			// check for the int in arr1
 			if(arr1.at(i).num >= 0 && arr2.at(i).num == -1){
@@ -107,29 +127,21 @@ int rightOrder(std::vector<struct Arr> arr1, std::vector<struct Arr> arr2){
 				struct Arr * arr = new Arr;
 				arr->num = arr1.at(i).num;
 				newArr->push_back(*arr);
-				std::cout << "Tis me" << std::endl;
-				if(!rightOrder(*newArr, arr2.at(i).arrs)){
+				if(rightOrder(*newArr, arr2.at(i).arrs, 0) == 0){
 					return 0;
-				}else{
-					std::cout << "HIDHFIDHFOSIDFOSDFN" << std::endl;
 				}
-				std::cout << "Yep" << std::endl;
 			}// else check for it in arr2
 			else if(arr1.at(i).num == -1 && arr2.at(i).num >= 0){
 				std::vector<struct Arr> * newArr = new std::vector<struct Arr>;
 				struct Arr * arr = new Arr;
 				arr->num = arr2.at(i).num;
 				newArr->push_back(*arr);
-				std::cout << "Or me" << std::endl;
-				if(!rightOrder(arr1.at(i).arrs, *newArr)){
-					std::cout << "R u seriosus" << std::endl;
+				if(!rightOrder(arr1.at(i).arrs, *newArr, 0)){
 					return 0;
 				}
 			}
 		}
 	}
-	std::cout << "bruh" << std::endl;
-
 	return 1;
 }
 
@@ -147,12 +159,18 @@ int main(){
 		std::getline(infile, temp);
 		std::vector<struct Arr> * arr2 = new std::vector<struct Arr>;
 		arr2 = parseArr(temp, arr2);
-		std::cout << "INPUT" << std::endl;
-		if(rightOrder(*arr1, *arr2))
+		if(rightOrder(*arr1, *arr2, 1)){
 			sumOfIndices += i;
+		}
 
 		i++; // counts num of pairs
+		// get the null line inbetween
+		std::getline(infile, temp);
 	}
+
+	// 9303 too high
+	// not 1237
+	// 1189 too low
 
 	std::cout << "Sum of indices is: " << sumOfIndices << "\n";
 
